@@ -1,0 +1,21 @@
+CREATE TABLE vehicles (
+    id INTEGER PRIMARY KEY,
+    year INTEGER NOT NULL,
+    make VARCHAR NOT NULL,
+    model VARCHAR NOT NULL,
+    "baseModel" VARCHAR NOT NULL,
+    "VClass" VARCHAR NOT NULL,
+    comb08 INTEGER NOT NULL,
+    city08 INTEGER NOT NULL,
+    highway08 INTEGER NOT NULL,
+    "fuelCost08" INTEGER NOT NULL,
+    "youSaveSpend" INTEGER NOT NULL,
+    "fuelType1" VARCHAR,
+    cylinders INTEGER,
+    displ DOUBLE,
+    "tCharger" VARCHAR,
+    "sCharger" VARCHAR,
+    drive VARCHAR,
+    trany VARCHAR,
+    "atvType" VARCHAR
+);

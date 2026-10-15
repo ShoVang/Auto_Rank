@@ -1,2 +1,2 @@
 source .venv/bin/activate
-.venv/bin/python Get_Data/Get_Row.py
+.venv/bin/python Main.py

@@ -13,3 +13,7 @@ df = pd.read_csv(ROOT / "vehicles.csv", usecols=cols)
 df = df.replace({"": pd.NA})
 df["make_key"] = df["make"].str.upper().str.strip()
 df["model_key"] = df["baseModel"].str.upper().str.strip()
+
+
+def get_rows():
+    return df.loc[:, cols].to_dict(orient="records")

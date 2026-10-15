@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "Get_Data"))
 
-from Get_Vechicles import get_vehicles
+from Vechicles import get_vehicles
 
 
 def main():

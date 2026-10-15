@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 cols = ["id", "year", "make", "model", "baseModel", "VClass",
         "comb08", "city08", "highway08", "fuelCost08", "youSaveSpend",

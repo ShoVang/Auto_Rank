@@ -11,7 +11,10 @@ export function VehiclesScreen() {
       <header>
         <p className="eyebrow">AutoRank</p>
         <h1>Vehicles</h1>
-        <p className="lede">Loaded from the DuckDB file at Data/vehicles.duckdb.</p>
+        <p className="lede">
+          EPA fuel economy ratings from fueleconomy.gov. Search by make, model,
+          or year.
+        </p>
       </header>
 
       <SearchBar

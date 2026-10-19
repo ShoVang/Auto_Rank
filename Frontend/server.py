@@ -30,6 +30,96 @@ FILTER = """
 """
 
 
+def query_stats():
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+    try:
+        row = con.execute(
+            """
+            SELECT
+                COUNT(*)::INTEGER,
+                ROUND(AVG(comb08), 1),
+                ROUND(AVG(city08), 1),
+                ROUND(AVG(highway08), 1),
+                MEDIAN(comb08),
+                MIN(year)::INTEGER,
+                MAX(year)::INTEGER,
+                COUNT(DISTINCT make)::INTEGER,
+                ROUND(AVG("fuelCost08"), 0)::INTEGER
+            FROM vehicles
+            """
+        ).fetchone()
+        keys = [
+            "vehicles",
+            "avg_comb",
+            "avg_city",
+            "avg_highway",
+            "median_comb",
+            "year_min",
+            "year_max",
+            "makes",
+            "avg_fuel_cost",
+        ]
+        stats = {key: float(value) for key, value in zip(keys, row)}
+        stats["by_year"] = [
+            {"year": int(year), "avg_comb": float(avg_comb)}
+            for year, avg_comb in con.execute(
+                """
+                SELECT year, ROUND(AVG(comb08), 1)
+                FROM vehicles
+                GROUP BY year
+                ORDER BY year
+                """
+            ).fetchall()
+        ]
+        stats["mpg_buckets"] = [
+            {"label": label, "vehicles": int(count)}
+            for label, count in con.execute(
+                """
+                SELECT label, vehicles FROM (
+                    SELECT
+                        CASE
+                            WHEN comb08 < 15 THEN 'Under 15'
+                            WHEN comb08 < 20 THEN '15–19'
+                            WHEN comb08 < 25 THEN '20–24'
+                            WHEN comb08 < 30 THEN '25–29'
+                            WHEN comb08 < 40 THEN '30–39'
+                            WHEN comb08 < 50 THEN '40–49'
+                            ELSE '50+'
+                        END AS label,
+                        CASE
+                            WHEN comb08 < 15 THEN 1
+                            WHEN comb08 < 20 THEN 2
+                            WHEN comb08 < 25 THEN 3
+                            WHEN comb08 < 30 THEN 4
+                            WHEN comb08 < 40 THEN 5
+                            WHEN comb08 < 50 THEN 6
+                            ELSE 7
+                        END AS sort_order,
+                        COUNT(*) AS vehicles
+                    FROM vehicles
+                    GROUP BY 1, 2
+                )
+                ORDER BY sort_order
+                """
+            ).fetchall()
+        ]
+        stats["by_class"] = [
+            {"label": label, "vehicles": int(count)}
+            for label, count in con.execute(
+                """
+                SELECT "VClass", COUNT(*)
+                FROM vehicles
+                GROUP BY 1
+                ORDER BY 2 DESC
+                LIMIT 8
+                """
+            ).fetchall()
+        ]
+        return stats
+    finally:
+        con.close()
+
+
 def query_vehicles(search, limit, offset):
     con = duckdb.connect(str(DB_PATH), read_only=True)
     try:
@@ -56,37 +146,34 @@ def query_vehicles(search, limit, offset):
 
 
 class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path != "/api/vehicles":
-            self.send_error(404)
-            return
-
-        params = parse_qs(parsed.query)
-        search = params.get("q", [""])[0]
-        try:
-            offset = max(int(params.get("offset", ["0"])[0]), 0)
-        except ValueError:
-            offset = 0
-
-        try:
-            payload = query_vehicles(search, PAGE_SIZE, offset)
-        except Exception as exc:
-            body = json.dumps({"error": str(exc)}).encode()
-            self.send_response(500)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-
+    def send_json(self, payload, status=200):
         body = json.dumps(payload).encode()
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path == "/api/stats":
+                self.send_json(query_stats())
+                return
+            if parsed.path != "/api/vehicles":
+                self.send_error(404)
+                return
+
+            params = parse_qs(parsed.query)
+            search = params.get("q", [""])[0]
+            try:
+                offset = max(int(params.get("offset", ["0"])[0]), 0)
+            except ValueError:
+                offset = 0
+            self.send_json(query_vehicles(search, PAGE_SIZE, offset))
+        except Exception as exc:
+            self.send_json({"error": str(exc)}, 500)
 
     def log_message(self, fmt, *args):
         print(f"[api] {self.address_string()} {fmt % args}")

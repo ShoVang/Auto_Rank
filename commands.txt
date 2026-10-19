@@ -1,15 +1,12 @@
+# Terminal 1: data/backend script (when you need it)
 source .venv/bin/activate
-.venv/bin/python Main.py
+python Main.py
 
-cd frontend && npm run server
-cd frontend && npm run dev
+# Terminal 2: API server
+npm run server --prefix frontend
 
-.venv/bin/python -c "
-import duckdb
-con = duckdb.connect('Data/vehicles.duckdb')
-con.execute('CALL start_ui_server();')
-print('UI ready at http://localhost:4213', flush=True)
-import time
-while True:
-    time.sleep(3600)
-"
+# Terminal 3: front end dev
+npm run dev --prefix frontend
+
+# Before deploying
+npm run build --prefix frontend

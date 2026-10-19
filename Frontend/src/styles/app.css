@@ -36,7 +36,213 @@ h1 {
 
 .lede {
   margin: 8px 0 0;
+  max-width: 42rem;
   color: #57534e;
+}
+
+.site-nav {
+  display: flex;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px 0;
+}
+
+.nav-current {
+  border-color: #1c1917;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.stat {
+  background: white;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stat strong {
+  display: block;
+  font-family: Georgia, "Iowan Old Style", serif;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.stat span {
+  color: #57534e;
+  font-size: 13px;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.charts article {
+  background: white;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-wide {
+  grid-column: 1 / -1;
+}
+
+.charts h2 {
+  margin: 0 0 4px;
+  font-family: Georgia, "Iowan Old Style", serif;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.charts p {
+  margin: 0 0 12px;
+  color: #57534e;
+  font-size: 14px;
+}
+
+.charts svg {
+  width: 100%;
+  height: auto;
+}
+
+.axis {
+  stroke: #d6d3d1;
+  stroke-width: 1;
+}
+
+.mpg-line {
+  fill: none;
+  stroke: #9a3412;
+  stroke-width: 2.5;
+}
+
+.tick {
+  fill: #78716c;
+  font-size: 12px;
+}
+
+.v-bars {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  height: 220px;
+}
+
+.v-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.v-count,
+.v-label {
+  color: #57534e;
+  font-size: 12px;
+}
+
+.v-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: end;
+  margin: 6px 0;
+}
+
+.v-track div,
+.h-track div {
+  background: #9a3412;
+  border-radius: 4px 4px 0 0;
+  width: 100%;
+}
+
+.h-bars {
+  display: grid;
+  gap: 10px;
+}
+
+.h-bar {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.h-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h-track {
+  height: 12px;
+  background: #f5f5f4;
+  border-radius: 999px;
+}
+
+.h-track div {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.home-grid article {
+  background: white;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.home-grid h2 {
+  margin: 0 0 8px;
+  font-family: Georgia, "Iowan Old Style", serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.home-grid p {
+  margin: 0;
+  color: #44403c;
+}
+
+.home-grid a {
+  color: #9a3412;
+}
+
+.primary {
+  background: #1c1917;
+  color: #fafaf9;
+  border-color: #1c1917;
+}
+
+@media (max-width: 700px) {
+  .stats,
+  .charts,
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .h-bar {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
 
 .toolbar {

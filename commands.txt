@@ -1,2 +1,15 @@
 source .venv/bin/activate
 .venv/bin/python Main.py
+
+cd frontend && npm run server
+cd frontend && npm run dev
+
+.venv/bin/python -c "
+import duckdb
+con = duckdb.connect('Data/vehicles.duckdb')
+con.execute('CALL start_ui_server();')
+print('UI ready at http://localhost:4213', flush=True)
+import time
+while True:
+    time.sleep(3600)
+"

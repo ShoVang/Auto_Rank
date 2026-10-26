@@ -1,4 +1,4 @@
-export type ScreenName = "home" | "vehicles";
+export type ScreenName = "home" | "vehicles" | "compare";
 
 type SiteNavProps = {
   current: ScreenName;

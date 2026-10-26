@@ -3,3 +3,4 @@ Build a small price table yourself This is probably the best fit for a grader.
 Pick the 100-200 popular models from the last few model years and enter MSRP by trim, 
 either by hand or by script from manufacturer sites. It’s small enough to be accurate, 
 and a recruiter will care more about a clean, documented pipeline than a huge messy dataset.
+Publish the website 

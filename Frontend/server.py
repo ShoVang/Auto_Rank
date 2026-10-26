@@ -127,7 +127,82 @@ def query_stats():
                 """
             ).fetchall()
         ]
+        stats["comb_box"] = _box(con, "comb08")
         return stats
+    finally:
+        con.close()
+
+
+def _box(con, column):
+    row = con.execute(
+        f"""
+        WITH bounds AS (
+            SELECT
+                quantile_cont({column}, 0.25) AS q1,
+                median({column}) AS med,
+                quantile_cont({column}, 0.75) AS q3,
+                avg({column}) AS avg_v,
+                min({column}) AS min_v,
+                max({column}) AS max_v
+            FROM vehicles
+        )
+        SELECT
+            min_v,
+            (
+                SELECT min({column})
+                FROM vehicles, bounds
+                WHERE {column} >= bounds.q1 - 1.5 * (bounds.q3 - bounds.q1)
+            ),
+            q1,
+            med,
+            q3,
+            (
+                SELECT max({column})
+                FROM vehicles, bounds
+                WHERE {column} <= bounds.q3 + 1.5 * (bounds.q3 - bounds.q1)
+            ),
+            max_v,
+            avg_v
+        FROM bounds
+        """
+    ).fetchone()
+    keys = ["min", "whisker_low", "q1", "median", "q3", "whisker_high", "max", "avg"]
+    return {key: float(value) for key, value in zip(keys, row)}
+
+
+def query_peers(vehicle_id, comb, vehicle_class, fuel, drive, year):
+    specs = [
+        ("class", "Class", '"VClass"', vehicle_class),
+        ("fuel", "Fuel", '"fuelType1"', fuel),
+        ("drive", "Drive", "drive", drive),
+        ("year", "Model year", "year", int(year) if str(year).strip() else ""),
+    ]
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+    try:
+        groups = []
+        for key, label, column, value in specs:
+            if value == "":
+                continue
+            others, ahead = con.execute(
+                f"""
+                SELECT
+                    COUNT(*)::INTEGER,
+                    COUNT(*) FILTER (WHERE comb08 < ?)::INTEGER
+                FROM vehicles
+                WHERE {column} = ? AND id <> ?
+                """,
+                [float(comb), value, int(vehicle_id)],
+            ).fetchone()
+            groups.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "name": str(value),
+                    "vehicles": int(others),
+                    "more_efficient_than": int(ahead),
+                }
+            )
+        return {"groups": groups}
     finally:
         con.close()
 
@@ -257,6 +332,18 @@ class Handler(BaseHTTPRequestHandler):
 
             if parsed.path == "/api/filters":
                 self.send_json(query_filters(field("make")))
+                return
+            if parsed.path == "/api/peers":
+                self.send_json(
+                    query_peers(
+                        field("id"),
+                        field("comb"),
+                        field("class"),
+                        field("fuel"),
+                        field("drive"),
+                        field("year"),
+                    )
+                )
                 return
             if parsed.path != "/api/vehicles":
                 self.send_error(404)

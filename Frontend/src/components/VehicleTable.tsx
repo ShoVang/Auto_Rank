@@ -3,6 +3,8 @@ import type { LoadStatus, Vehicle } from "../types/vehicle";
 type VehicleTableProps = {
   rows: Vehicle[];
   status: LoadStatus;
+  selectedId: number | null;
+  onSelect: (car: Vehicle) => void;
 };
 
 function money(value: number | null) {
@@ -10,7 +12,7 @@ function money(value: number | null) {
   return `$${Number(value).toLocaleString()}`;
 }
 
-export function VehicleTable({ rows, status }: VehicleTableProps) {
+export function VehicleTable({ rows, status, selectedId, onSelect }: VehicleTableProps) {
   return (
     <div className="table-wrap">
       <table>
@@ -29,20 +31,35 @@ export function VehicleTable({ rows, status }: VehicleTableProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((car) => (
-            <tr key={car.id}>
-              <td>{car.year}</td>
-              <td>{car.make}</td>
-              <td>{car.model}</td>
-              <td>{car.vehicle_class}</td>
-              <td>{car.comb08}</td>
-              <td>{car.city08}</td>
-              <td>{car.highway08}</td>
-              <td>{car.fuel_type || "—"}</td>
-              <td>{money(car.fuel_cost)}</td>
-              <td>{car.drive || "—"}</td>
-            </tr>
-          ))}
+          {rows.map((car) => {
+            const selected = car.id === selectedId;
+            return (
+              <tr
+                key={car.id}
+                className={selected ? "row-selected" : undefined}
+                aria-selected={selected}
+                tabIndex={0}
+                onClick={() => onSelect(car)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(car);
+                  }
+                }}
+              >
+                <td>{car.year}</td>
+                <td>{car.make}</td>
+                <td>{car.model}</td>
+                <td>{car.vehicle_class}</td>
+                <td>{car.comb08}</td>
+                <td>{car.city08}</td>
+                <td>{car.highway08}</td>
+                <td>{car.fuel_type || "—"}</td>
+                <td>{money(car.fuel_cost)}</td>
+                <td>{car.drive || "—"}</td>
+              </tr>
+            );
+          })}
           {status === "ready" && rows.length === 0 ? (
             <tr>
               <td colSpan={10}>No vehicles match that search.</td>

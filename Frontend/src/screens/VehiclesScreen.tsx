@@ -2,8 +2,15 @@ import { Pager } from "../components/Pager";
 import { VehicleFilters } from "../components/VehicleFilters";
 import { VehicleTable } from "../components/VehicleTable";
 import { useVehicles } from "../hooks/useVehicles";
+import type { Vehicle } from "../types/vehicle";
 
-export function VehiclesScreen() {
+type VehiclesScreenProps = {
+  selected: Vehicle | null;
+  onSelect: (car: Vehicle) => void;
+  onCompare: (car: Vehicle) => void;
+};
+
+export function VehiclesScreen({ selected, onSelect, onCompare }: VehiclesScreenProps) {
   const vehicles = useVehicles();
 
   return (
@@ -13,7 +20,7 @@ export function VehiclesScreen() {
         <h1>Vehicles</h1>
         <p className="lede">
           EPA fuel economy ratings from fueleconomy.gov. Search by make, model,
-          or year, or check a fuel type and drive to narrow the list.
+          or year, then select a vehicle and compare it with the catalog.
         </p>
       </header>
 
@@ -45,7 +52,27 @@ export function VehiclesScreen() {
         onReset={vehicles.reset}
       />
       {vehicles.error ? <p className="error">{vehicles.error}</p> : null}
-      <VehicleTable rows={vehicles.rows} status={vehicles.status} />
+      <div className="compare-bar">
+        <p>
+          {selected
+            ? `${selected.year} ${selected.make} ${selected.model} selected`
+            : "Select a vehicle in the table."}
+        </p>
+        <button
+          type="button"
+          className="primary"
+          disabled={!selected}
+          onClick={() => selected && onCompare(selected)}
+        >
+          Compare
+        </button>
+      </div>
+      <VehicleTable
+        rows={vehicles.rows}
+        status={vehicles.status}
+        selectedId={selected?.id ?? null}
+        onSelect={onSelect}
+      />
       <Pager
         page={vehicles.page}
         pageCount={vehicles.pageCount}

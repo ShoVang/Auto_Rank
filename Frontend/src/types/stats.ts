@@ -8,6 +8,17 @@ export type CountBar = {
   vehicles: number;
 };
 
+export type BoxSummary = {
+  min: number;
+  whisker_low: number;
+  q1: number;
+  median: number;
+  q3: number;
+  whisker_high: number;
+  max: number;
+  avg: number;
+};
+
 export type DatasetStats = {
   vehicles: number;
   avg_comb: number;
@@ -22,4 +33,5 @@ export type DatasetStats = {
   mpg_buckets: CountBar[];
   by_class: CountBar[];
   by_fuel: CountBar[];
+  comb_box: BoxSummary;
 };

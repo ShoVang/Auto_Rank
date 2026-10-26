@@ -235,6 +235,7 @@ h1 {
 @media (max-width: 700px) {
   .stats,
   .charts,
+  .filter-checks,
   .home-grid {
     grid-template-columns: 1fr;
   }
@@ -243,6 +244,64 @@ h1 {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+}
+
+.filters {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.filter-row select,
+.filter-row input[type="number"] {
+  width: 180px;
+}
+
+.filter-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.filter-group {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  background: white;
+}
+
+.filter-group legend {
+  padding: 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #78716c;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.checks label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1c1917;
+  font-size: 14px;
+}
+
+.checks input {
+  width: auto;
 }
 
 .toolbar {

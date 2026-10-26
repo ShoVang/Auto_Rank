@@ -21,4 +21,5 @@ export type DatasetStats = {
   by_year: YearPoint[];
   mpg_buckets: CountBar[];
   by_class: CountBar[];
+  by_fuel: CountBar[];
 };

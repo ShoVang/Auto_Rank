@@ -115,28 +115,116 @@ def query_stats():
                 """
             ).fetchall()
         ]
+        stats["by_fuel"] = [
+            {"label": label, "vehicles": int(count)}
+            for label, count in con.execute(
+                """
+                SELECT "fuelType1", COUNT(*)
+                FROM vehicles
+                WHERE "fuelType1" IS NOT NULL
+                GROUP BY 1
+                ORDER BY 2 DESC
+                """
+            ).fetchall()
+        ]
         return stats
     finally:
         con.close()
 
 
-def query_vehicles(search, limit, offset):
+def _where(search, fuels, drives, make, model, vehicle_class, year, min_mpg):
+    needle = search.strip()
+    where = f"({FILTER})"
+    params = [needle, needle, needle, needle]
+    if make:
+        where += " AND make = ?"
+        params.append(make)
+    if model:
+        where += " AND model = ?"
+        params.append(model)
+    if vehicle_class:
+        where += ' AND "VClass" = ?'
+        params.append(vehicle_class)
+    if year:
+        where += " AND year = ?"
+        params.append(int(year))
+    if min_mpg:
+        where += " AND comb08 >= ?"
+        params.append(float(min_mpg))
+    if fuels:
+        marks = ", ".join("?" for _ in fuels)
+        where += f' AND "fuelType1" IN ({marks})'
+        params.extend(fuels)
+    if drives:
+        marks = ", ".join("?" for _ in drives)
+        where += f" AND drive IN ({marks})"
+        params.extend(drives)
+    return where, params
+
+
+def _column(con, sql, params=()):
+    return [row[0] for row in con.execute(sql, params).fetchall()]
+
+
+def query_filters(make):
     con = duckdb.connect(str(DB_PATH), read_only=True)
     try:
-        needle = search.strip()
+        models = (
+            _column(
+                con,
+                "SELECT model FROM vehicles WHERE make = ? GROUP BY 1 ORDER BY 1",
+                [make],
+            )
+            if make
+            else []
+        )
+        return {
+            "makes": _column(con, "SELECT make FROM vehicles GROUP BY 1 ORDER BY 1"),
+            "models": models,
+            "classes": _column(con, 'SELECT "VClass" FROM vehicles GROUP BY 1 ORDER BY 1'),
+            "years": [int(year) for year in _column(con, "SELECT year FROM vehicles GROUP BY 1 ORDER BY 1 DESC")],
+            "fuels": _column(
+                con,
+                """
+                SELECT "fuelType1"
+                FROM vehicles
+                WHERE "fuelType1" IS NOT NULL
+                GROUP BY 1
+                ORDER BY COUNT(*) DESC
+                """,
+            ),
+            "drives": _column(
+                con,
+                """
+                SELECT drive
+                FROM vehicles
+                WHERE drive IS NOT NULL
+                GROUP BY 1
+                ORDER BY COUNT(*) DESC
+                """,
+            ),
+        }
+    finally:
+        con.close()
+
+
+def query_vehicles(search, limit, offset, fuels, drives, make, model, vehicle_class, year, min_mpg):
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+    try:
+        where, params = _where(search, fuels, drives, make, model, vehicle_class, year, min_mpg)
         total = con.execute(
-            f"SELECT COUNT(*) FROM vehicles WHERE {FILTER}",
-            [needle, needle, needle, needle],
+            f"SELECT COUNT(*) FROM vehicles WHERE {where}",
+            params,
         ).fetchone()[0]
         cursor = con.execute(
             f"""
             SELECT {COLUMNS}
             FROM vehicles
-            WHERE {FILTER}
+            WHERE {where}
             ORDER BY year DESC, make, model
             LIMIT ? OFFSET ?
             """,
-            [needle, needle, needle, needle, limit, offset],
+            [*params, limit, offset],
         )
         names = [col[0] for col in cursor.description]
         rows = [dict(zip(names, row)) for row in cursor.fetchall()]
@@ -161,17 +249,38 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/stats":
                 self.send_json(query_stats())
                 return
+            params = parse_qs(parsed.query)
+
+            def field(name):
+                values = params.get(name, [])
+                return values[0].strip() if values else ""
+
+            if parsed.path == "/api/filters":
+                self.send_json(query_filters(field("make")))
+                return
             if parsed.path != "/api/vehicles":
                 self.send_error(404)
                 return
 
-            params = parse_qs(parsed.query)
             search = params.get("q", [""])[0]
             try:
                 offset = max(int(params.get("offset", ["0"])[0]), 0)
             except ValueError:
                 offset = 0
-            self.send_json(query_vehicles(search, PAGE_SIZE, offset))
+            self.send_json(
+                query_vehicles(
+                    search,
+                    PAGE_SIZE,
+                    offset,
+                    params.get("fuel", []),
+                    params.get("drive", []),
+                    field("make"),
+                    field("model"),
+                    field("class"),
+                    field("year"),
+                    field("min_mpg"),
+                )
+            )
         except Exception as exc:
             self.send_json({"error": str(exc)}, 500)
 

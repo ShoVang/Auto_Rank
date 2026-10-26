@@ -23,6 +23,7 @@ export function VehicleTable({ rows, status }: VehicleTableProps) {
             <th>Comb</th>
             <th>City</th>
             <th>Hwy</th>
+            <th>Fuel</th>
             <th>Fuel cost</th>
             <th>Drive</th>
           </tr>
@@ -37,13 +38,14 @@ export function VehicleTable({ rows, status }: VehicleTableProps) {
               <td>{car.comb08}</td>
               <td>{car.city08}</td>
               <td>{car.highway08}</td>
+              <td>{car.fuel_type || "—"}</td>
               <td>{money(car.fuel_cost)}</td>
               <td>{car.drive || "—"}</td>
             </tr>
           ))}
           {status === "ready" && rows.length === 0 ? (
             <tr>
-              <td colSpan={9}>No vehicles match that search.</td>
+              <td colSpan={10}>No vehicles match that search.</td>
             </tr>
           ) : null}
         </tbody>

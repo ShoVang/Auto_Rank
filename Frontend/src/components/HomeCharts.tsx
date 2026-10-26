@@ -4,6 +4,7 @@ type HomeChartsProps = {
   byYear: YearPoint[];
   mpgBuckets: CountBar[];
   byClass: CountBar[];
+  byFuel: CountBar[];
 };
 
 function MpgByYear({ points }: { points: YearPoint[] }) {
@@ -68,7 +69,7 @@ function HorizontalBars({ bars }: { bars: CountBar[] }) {
   );
 }
 
-export function HomeCharts({ byYear, mpgBuckets, byClass }: HomeChartsProps) {
+export function HomeCharts({ byYear, mpgBuckets, byClass, byFuel }: HomeChartsProps) {
   return (
     <section className="charts">
       <article>
@@ -84,6 +85,11 @@ export function HomeCharts({ byYear, mpgBuckets, byClass }: HomeChartsProps) {
       <article className="chart-wide">
         <h2>Largest vehicle classes</h2>
         <HorizontalBars bars={byClass} />
+      </article>
+      <article className="chart-wide">
+        <h2>Fuel type</h2>
+        <p>Primary fuel from the EPA rating. Gasoline covers most of the catalog.</p>
+        <HorizontalBars bars={byFuel} />
       </article>
     </section>
   );

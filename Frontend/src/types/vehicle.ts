@@ -8,7 +8,17 @@ export type Vehicle = {
   city08: number;
   highway08: number;
   fuel_cost: number | null;
+  fuel_type: string | null;
   drive: string | null;
+};
+
+export type FilterOptions = {
+  makes: string[];
+  models: string[];
+  classes: string[];
+  years: number[];
+  fuels: string[];
+  drives: string[];
 };
 
 export type VehiclesResponse = {

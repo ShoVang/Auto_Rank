@@ -23,6 +23,7 @@ export function HomeScreen({ onBrowse }: HomeScreenProps) {
           byYear={stats.by_year}
           mpgBuckets={stats.mpg_buckets}
           byClass={stats.by_class}
+          byFuel={stats.by_fuel}
         />
       ) : null}
 

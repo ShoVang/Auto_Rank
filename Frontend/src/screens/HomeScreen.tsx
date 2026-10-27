@@ -12,10 +12,12 @@ export function HomeScreen({ onBrowse }: HomeScreenProps) {
   return (
     <main>
       <p className="eyebrow">AutoRank</p>
-      <h1>Which vehicles give you the most for the money?</h1>
+      <h1>Find the perfect vehicle for you!</h1>
       <p className="lede">
-        AutoRank grades cars on safety, reliability, speed, luxury, and cost,
-        then ranks them by value: how much car you get per dollar.
+        AutoRank shows you a list of cars to help you narrow down your search
+        for a new vehicle. We mainly focus on the fuel efficiency of the
+        vehicle, but this can also be sorted by the type or model of the
+        vehicle.
       </p>
       <DatasetStats stats={stats} error={error} />
       {stats ? (
@@ -40,9 +42,9 @@ export function HomeScreen({ onBrowse }: HomeScreenProps) {
         <article>
           <h2>Coverage</h2>
           <p>
-            The data goes back to model year 1984 and includes every vehicle
-            the EPA has certified for sale in the US. It is historical as well
-            as current. Filter on year if you only want recent models.
+            The data goes back to model year 1984 and includes every vehicle the
+            EPA has certified for sale in the US. It is historical as well as
+            current. Filter on year if you only want recent models.
           </p>
         </article>
       </section>

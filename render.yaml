@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: autorank
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python scripts/build_db.py && cd Frontend && npm ci && npm run build
+    startCommand: python -u Frontend/server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.7"
+      - key: NODE_VERSION
+        value: "20.18.1"

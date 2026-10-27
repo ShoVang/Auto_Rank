@@ -1,6 +1,8 @@
-"""Local API that reads the AutoRank DuckDB file for the React app."""
+"""API and static host for the AutoRank React app."""
 
 import json
+import mimetypes
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -9,7 +11,11 @@ import duckdb
 
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "Data" / "vehicles.duckdb"
+DIST = Path(__file__).resolve().parent / "dist"
 PAGE_SIZE = 25
+
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
 
 COLUMNS = """
     id, year, make, model,
@@ -309,6 +315,31 @@ def query_vehicles(search, limit, offset, fuels, drives, make, model, vehicle_cl
 
 
 class Handler(BaseHTTPRequestHandler):
+    def serve_static(self, url_path):
+        dist = DIST.resolve()
+        relative = url_path.lstrip("/") or "index.html"
+        candidate = (dist / relative).resolve()
+        try:
+            candidate.relative_to(dist)
+        except ValueError:
+            self.send_error(404)
+            return
+        if not candidate.is_file():
+            if Path(relative).suffix:
+                self.send_error(404)
+                return
+            candidate = dist / "index.html"
+            if not candidate.is_file():
+                self.send_error(404, "Frontend build not found")
+                return
+        body = candidate.read_bytes()
+        mime = mimetypes.guess_type(candidate.name)[0] or "application/octet-stream"
+        self.send_response(200)
+        self.send_header("Content-Type", mime)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def send_json(self, payload, status=200):
         body = json.dumps(payload).encode()
         self.send_response(status)
@@ -320,6 +351,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if not parsed.path.startswith("/api"):
+            self.serve_static(parsed.path)
+            return
         try:
             if parsed.path == "/api/stats":
                 self.send_json(query_stats())
@@ -376,6 +410,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("DuckDB API ready at http://127.0.0.1:8000/api/vehicles")
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", "8000"))
+    server = ThreadingHTTPServer((host, port), Handler)
+    print(f"AutoRank ready at http://{host}:{port}")
     server.serve_forever()
